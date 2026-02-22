@@ -7,6 +7,10 @@ const adminRoutes = ["/admin"];
 export default auth((req) => {
   const { nextUrl, auth: session } = req;
   const isLoggedIn = !!session;
+  // Shared profile pages are viewable by anyone (logged in or not)
+  if (nextUrl.pathname.startsWith("/profile/")) {
+    return NextResponse.next();
+  }
   const isPublicRoute = publicRoutes.some((route) =>
     nextUrl.pathname.startsWith(route)
   );

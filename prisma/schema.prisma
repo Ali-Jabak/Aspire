@@ -28,6 +28,13 @@ enum CheckoutStatus {
   OVERDUE
 }
 
+enum MediaStatus {
+  OWNED
+  WISHLIST
+  CURRENTLY_USING
+  COMPLETED
+}
+
 // ─── Auth Models (NextAuth / Auth.js) ────────────────────────────────────────
 
 model User {
@@ -47,6 +54,7 @@ model User {
   checkouts      CheckoutRecord[]
   bookReviews    BookReview[]
   mediaItems     MediaItem[]
+  profile        Profile?
   recipes        Recipe[]
   inventoryItems InventoryItem[]
   events         Event[]
@@ -148,18 +156,34 @@ model BookReview {
 // ─── Media Module ─────────────────────────────────────────────────────────────
 
 model MediaItem {
-  id           String    @id @default(cuid())
-  title        String
-  type         String
-  description  String?   @db.Text
-  url          String?
-  thumbnailUrl String?
-  genre        String?
-  rating       Int?
-  watchedAt    DateTime?
-  userId       String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String      @id @default(cuid())
+  title         String
+  type          String      // MOVIE, MUSIC, GAME or sub-types: TV Show, Album, etc.
+  creator       String?     // director, artist, developer, etc.
+  description   String?     @db.Text
+  url           String?
+  thumbnailUrl  String?
+  genre         String?
+  rating        Int?
+  releaseDate   DateTime?
+  completedAt   DateTime?   // when marked completed / finished
+  status        MediaStatus @default(OWNED)
+  userId        String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  slug        String   @unique  // for /profile/[slug] share URL
+  displayName String?
+  bio         String?  @db.Text
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

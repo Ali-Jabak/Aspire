@@ -418,6 +418,98 @@ async function main() {
     });
   }
   console.log("✓ Seeded sample reviews");
+
+  // Profiles for sharing collections
+  await db.profile.upsert({
+    where: { userId: admin.id },
+    update: {},
+    create: { userId: admin.id, slug: "admin", displayName: "Admin", isPublic: true },
+  });
+  await db.profile.upsert({
+    where: { userId: user.id },
+    update: {},
+    create: { userId: user.id, slug: "user", displayName: "Demo User", isPublic: true },
+  });
+  await db.profile.upsert({
+    where: { userId: librarian.id },
+    update: {},
+    create: { userId: librarian.id, slug: "librarian", displayName: "Librarian", isPublic: true },
+  });
+  console.log("✓ Seeded profiles");
+
+  // Demo media: clear existing media for demo users, then create so re-running seed repopulates
+  await db.mediaItem.deleteMany({
+    where: { userId: { in: [admin.id, user.id, librarian.id] } },
+  });
+
+  const statuses = ["OWNED", "WISHLIST", "CURRENTLY_USING", "COMPLETED"] as const;
+  const mediaRows: Array<{
+    title: string;
+    type: string;
+    creator: string;
+    genre: string;
+    releaseDate: Date;
+    status: (typeof statuses)[number];
+    rating?: number;
+    userId: string;
+  }> = [
+    // Movies — user
+    { title: "Inception", type: "Movie", creator: "Christopher Nolan", genre: "Sci-Fi", releaseDate: new Date("2010-07-16"), status: "COMPLETED", rating: 5, userId: user.id },
+    { title: "The Dark Knight", type: "Movie", creator: "Christopher Nolan", genre: "Action", releaseDate: new Date("2008-07-18"), status: "OWNED", rating: 5, userId: user.id },
+    { title: "Interstellar", type: "Movie", creator: "Christopher Nolan", genre: "Sci-Fi", releaseDate: new Date("2014-11-07"), status: "WISHLIST", userId: user.id },
+    { title: "Parasite", type: "Movie", creator: "Bong Joon-ho", genre: "Thriller", releaseDate: new Date("2019-05-30"), status: "COMPLETED", rating: 5, userId: user.id },
+    { title: "Everything Everywhere All at Once", type: "Movie", creator: "Daniel Kwan", genre: "Sci-Fi", releaseDate: new Date("2022-03-25"), status: "OWNED", rating: 5, userId: user.id },
+    { title: "Spirited Away", type: "Movie", creator: "Hayao Miyazaki", genre: "Animation", releaseDate: new Date("2001-07-20"), status: "COMPLETED", rating: 5, userId: user.id },
+    { title: "The Shawshank Redemption", type: "Movie", creator: "Frank Darabont", genre: "Drama", releaseDate: new Date("1994-09-23"), status: "OWNED", rating: 5, userId: user.id },
+    { title: "Pulp Fiction", type: "Movie", creator: "Quentin Tarantino", genre: "Crime", releaseDate: new Date("1994-10-14"), status: "COMPLETED", rating: 5, userId: user.id },
+    { title: "Dune", type: "Movie", creator: "Denis Villeneuve", genre: "Sci-Fi", releaseDate: new Date("2021-10-22"), status: "WISHLIST", userId: user.id },
+    { title: "The Matrix", type: "Movie", creator: "Lana Wachowski", genre: "Sci-Fi", releaseDate: new Date("1999-03-31"), status: "OWNED", rating: 5, userId: user.id },
+    // TV — user
+    { title: "Breaking Bad", type: "TV Show", creator: "Vince Gilligan", genre: "Drama", releaseDate: new Date("2008-01-20"), status: "COMPLETED", rating: 5, userId: user.id },
+    { title: "Severance", type: "TV Show", creator: "Dan Erickson", genre: "Sci-Fi", releaseDate: new Date("2022-02-18"), status: "CURRENTLY_USING", rating: 5, userId: user.id },
+    { title: "The Bear", type: "TV Show", creator: "Christopher Storer", genre: "Drama", releaseDate: new Date("2022-06-23"), status: "WISHLIST", userId: user.id },
+    // Music — user
+    { title: "Abbey Road", type: "Album", creator: "The Beatles", genre: "Rock", releaseDate: new Date("1969-09-26"), status: "OWNED", rating: 5, userId: user.id },
+    { title: "Random Access Memories", type: "Album", creator: "Daft Punk", genre: "Electronic", releaseDate: new Date("2013-05-17"), status: "OWNED", rating: 5, userId: user.id },
+    { title: "Blonde", type: "Album", creator: "Frank Ocean", genre: "R&B", releaseDate: new Date("2016-08-20"), status: "COMPLETED", rating: 5, userId: user.id },
+    { title: "To Pimp a Butterfly", type: "Album", creator: "Kendrick Lamar", genre: "Hip-Hop", releaseDate: new Date("2015-03-15"), status: "OWNED", rating: 5, userId: user.id },
+    { title: "Rumours", type: "Album", creator: "Fleetwood Mac", genre: "Rock", releaseDate: new Date("1977-02-04"), status: "WISHLIST", userId: user.id },
+    // Games — user
+    { title: "The Legend of Zelda: Breath of the Wild", type: "Game", creator: "Nintendo", genre: "Adventure", releaseDate: new Date("2017-03-03"), status: "CURRENTLY_USING", rating: 5, userId: user.id },
+    { title: "Elden Ring", type: "Game", creator: "FromSoftware", genre: "RPG", releaseDate: new Date("2022-02-25"), status: "WISHLIST", userId: user.id },
+    { title: "Hades", type: "Game", creator: "Supergiant Games", genre: "Roguelike", releaseDate: new Date("2020-09-17"), status: "COMPLETED", rating: 5, userId: user.id },
+    { title: "Stardew Valley", type: "Game", creator: "ConcernedApe", genre: "Simulation", releaseDate: new Date("2016-02-26"), status: "OWNED", rating: 5, userId: user.id },
+    { title: "Portal 2", type: "Game", creator: "Valve", genre: "Puzzle", releaseDate: new Date("2011-04-19"), status: "COMPLETED", rating: 5, userId: user.id },
+    // Admin — movies & TV
+    { title: "Oppenheimer", type: "Movie", creator: "Christopher Nolan", genre: "Biography", releaseDate: new Date("2023-07-21"), status: "OWNED", rating: 5, userId: admin.id },
+    { title: "Succession", type: "TV Show", creator: "Jesse Armstrong", genre: "Drama", releaseDate: new Date("2018-06-03"), status: "COMPLETED", rating: 5, userId: admin.id },
+    { title: "True Detective", type: "TV Show", creator: "Nic Pizzolatto", genre: "Crime", releaseDate: new Date("2014-01-12"), status: "OWNED", userId: admin.id },
+    { title: "The Godfather", type: "Movie", creator: "Francis Ford Coppola", genre: "Crime", releaseDate: new Date("1972-03-24"), status: "COMPLETED", rating: 5, userId: admin.id },
+    { title: "2001: A Space Odyssey", type: "Movie", creator: "Stanley Kubrick", genre: "Sci-Fi", releaseDate: new Date("1968-04-06"), status: "OWNED", rating: 5, userId: admin.id },
+    { title: "Blade Runner 2049", type: "Movie", creator: "Denis Villeneuve", genre: "Sci-Fi", releaseDate: new Date("2017-10-06"), status: "WISHLIST", userId: admin.id },
+    { title: "Drive", type: "Movie", creator: "Nicolas Winding Refn", genre: "Thriller", releaseDate: new Date("2011-09-16"), status: "OWNED", rating: 5, userId: admin.id },
+    { title: "Arrival", type: "Movie", creator: "Denis Villeneuve", genre: "Sci-Fi", releaseDate: new Date("2016-11-11"), status: "COMPLETED", rating: 5, userId: admin.id },
+    // Admin — music & games
+    { title: "Kid A", type: "Album", creator: "Radiohead", genre: "Rock", releaseDate: new Date("2000-10-02"), status: "OWNED", rating: 5, userId: admin.id },
+    { title: "Homogenic", type: "Album", creator: "Björk", genre: "Electronic", releaseDate: new Date("1997-09-22"), status: "OWNED", userId: admin.id },
+    { title: "Disco Elysium", type: "Game", creator: "ZA/UM", genre: "RPG", releaseDate: new Date("2019-10-15"), status: "COMPLETED", rating: 5, userId: admin.id },
+    { title: "Baldur's Gate 3", type: "Game", creator: "Larian Studios", genre: "RPG", releaseDate: new Date("2023-08-03"), status: "CURRENTLY_USING", rating: 5, userId: admin.id },
+    { title: "Outer Wilds", type: "Game", creator: "Mobius Digital", genre: "Adventure", releaseDate: new Date("2019-05-30"), status: "COMPLETED", rating: 5, userId: admin.id },
+    // Librarian — mixed
+    { title: "Past Lives", type: "Movie", creator: "Celine Song", genre: "Romance", releaseDate: new Date("2023-06-02"), status: "WISHLIST", userId: librarian.id },
+    { title: "Aftersun", type: "Movie", creator: "Charlotte Wells", genre: "Drama", releaseDate: new Date("2022-10-21"), status: "COMPLETED", rating: 5, userId: librarian.id },
+    { title: "The Last of Us", type: "TV Show", creator: "Craig Mazin", genre: "Drama", releaseDate: new Date("2023-01-15"), status: "CURRENTLY_USING", rating: 5, userId: librarian.id },
+    { title: "Fleabag", type: "TV Show", creator: "Phoebe Waller-Bridge", genre: "Comedy", releaseDate: new Date("2016-07-21"), status: "COMPLETED", rating: 5, userId: librarian.id },
+    { title: "Norman Fucking Rockwell", type: "Album", creator: "Lana Del Rey", genre: "Pop", releaseDate: new Date("2019-08-30"), status: "OWNED", rating: 5, userId: librarian.id },
+    { title: "Fetch the Bolt Cutters", type: "Album", creator: "Fiona Apple", genre: "Indie", releaseDate: new Date("2020-04-17"), status: "OWNED", userId: librarian.id },
+    { title: "Celeste", type: "Game", creator: "Maddy Makes Games", genre: "Platformer", releaseDate: new Date("2018-01-25"), status: "COMPLETED", rating: 5, userId: librarian.id },
+    { title: "Hollow Knight", type: "Game", creator: "Team Cherry", genre: "Metroidvania", releaseDate: new Date("2017-02-24"), status: "WISHLIST", userId: librarian.id },
+    { title: "Podcast: How I Built This", type: "Podcast", creator: "NPR", genre: "Business", releaseDate: new Date("2016-09-12"), status: "CURRENTLY_USING", userId: librarian.id },
+    { title: "Podcast: 99% Invisible", type: "Podcast", creator: "Roman Mars", genre: "Design", releaseDate: new Date("2010-08-16"), status: "OWNED", userId: librarian.id },
+  ];
+
+  const { count } = await db.mediaItem.createMany({ data: mediaRows });
+  console.log(`✓ Seeded ${count} media items`);
 }
 
 main()
