@@ -48,6 +48,13 @@ enum InventoryStatus {
   DISCONTINUED
 }
 
+enum EventInvitationStatus {
+  PENDING
+  ATTENDING
+  MAYBE
+  DECLINED
+}
+
 // ─── Auth Models (NextAuth / Auth.js) ────────────────────────────────────────
 
 model User {
@@ -73,6 +80,8 @@ model User {
   recipesSharedWith RecipeShare[]  @relation("SharedByUser")
   inventoryItems   InventoryItem[]
   events           Event[]
+  eventInvitations EventInvitation[]  @relation("InvitedToEvents")
+  eventsInvited    EventInvitation[]   @relation("InvitedByUser")
 }
 
 model Account {
@@ -276,5 +285,21 @@ model Event {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitations EventInvitation[]
+}
+
+model EventInvitation {
+  id        String               @id @default(cuid())
+  eventId   String
+  userId    String
+  status    EventInvitationStatus @default(PENDING)
+  invitedAt DateTime             @default(now())
+  invitedById String
+
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User  @relation("InvitedToEvents", fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy User  @relation("InvitedByUser", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
 }
