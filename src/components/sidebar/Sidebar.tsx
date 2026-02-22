@@ -1,16 +1,29 @@
 import { SidebarItem } from "./SidebarItem";
 import { SidebarUser } from "./SidebarUser";
+import type { Role } from "@prisma/client";
 
-const navItems = [
+const navItems: { href: string; label: string; iconKey: string; moduleKey?: string; adminOnly?: boolean }[] = [
   { href: "/dashboard", label: "Dashboard", iconKey: "dashboard" },
-  { href: "/library", label: "Library", iconKey: "library" },
-  { href: "/media", label: "Media", iconKey: "media" },
-  { href: "/recipe", label: "Recipes", iconKey: "recipe" },
-  { href: "/inventory", label: "Inventory", iconKey: "inventory" },
-  { href: "/event", label: "Events", iconKey: "event" },
+  { href: "/library", label: "Library", iconKey: "library", moduleKey: "library" },
+  { href: "/media", label: "Media", iconKey: "media", moduleKey: "media" },
+  { href: "/recipe", label: "Recipes", iconKey: "recipe", moduleKey: "recipe" },
+  { href: "/inventory", label: "Inventory", iconKey: "inventory", moduleKey: "inventory" },
+  { href: "/event", label: "Events", iconKey: "event", moduleKey: "event" },
+  { href: "/admin/users", label: "Create user", iconKey: "users", adminOnly: true },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  allowedModules: string[];
+  role: Role;
+}
+
+export function Sidebar({ allowedModules, role }: SidebarProps) {
+  const visible = navItems.filter((item) => {
+    if (item.adminOnly) return role === "ADMIN";
+    if (!item.moduleKey) return true; // dashboard
+    return allowedModules.length === 0 || allowedModules.includes(item.moduleKey);
+  });
+
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-slate-900 border-r border-slate-800">
       {/* Logo */}
@@ -27,8 +40,8 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {navItems.map((item) => (
-          <SidebarItem key={item.href} {...item} />
+        {visible.map((item) => (
+          <SidebarItem key={item.href} href={item.href} label={item.label} iconKey={item.iconKey} />
         ))}
       </nav>
 

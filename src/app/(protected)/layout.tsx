@@ -15,7 +15,10 @@ export default async function ProtectedLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      <Sidebar />
+      <Sidebar
+        allowedModules={session.user.allowedModules ?? []}
+        role={session.user.role}
+      />
       <main className="flex-1 ml-64 overflow-y-auto">
         <div className="min-h-full">{children}</div>
       </main>

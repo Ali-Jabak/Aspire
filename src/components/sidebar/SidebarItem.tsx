@@ -9,6 +9,7 @@ import {
   ChefHat,
   Package,
   CalendarDays,
+  UserPlus,
 } from "lucide-react";
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
@@ -18,6 +19,7 @@ const ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: n
   recipe: ChefHat,
   inventory: Package,
   event: CalendarDays,
+  users: UserPlus,
 };
 
 interface SidebarItemProps {

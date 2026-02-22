@@ -48,6 +48,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           image: user.image,
           role: user.role,
+          allowedModules: (user as { allowedModules?: string[] }).allowedModules ?? [],
         };
       },
     }),
@@ -57,6 +58,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id as string;
         token.role = (user as { role: Role }).role;
+        token.allowedModules = (user as { allowedModules?: string[] }).allowedModules ?? [];
       }
       return token;
     },
@@ -64,6 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as Role;
+        session.user.allowedModules = (token.allowedModules as string[]) ?? [];
       }
       return session;
     },
