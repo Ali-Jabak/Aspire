@@ -3,6 +3,330 @@ import bcrypt from "bcryptjs";
 
 const db = new PrismaClient();
 
+const SAMPLE_BOOKS = [
+  {
+    title: "The Great Gatsby",
+    author: "F. Scott Fitzgerald",
+    isbn: "9780743273565",
+    genre: "Fiction",
+    publisher: "Scribner",
+    publishedYear: 1925,
+    pageCount: 180,
+    language: "English",
+    tags: ["classic", "american literature", "jazz age"],
+    totalCopies: 4,
+    availableCopies: 3,
+    location: "A-1-1",
+    description:
+      "A story of the fabulously wealthy Jay Gatsby and his love for the beautiful Daisy Buchanan, set in the summer of 1922 on Long Island.",
+  },
+  {
+    title: "To Kill a Mockingbird",
+    author: "Harper Lee",
+    isbn: "9780061935466",
+    genre: "Fiction",
+    publisher: "HarperCollins",
+    publishedYear: 1960,
+    pageCount: 336,
+    language: "English",
+    tags: ["classic", "justice", "pulitzer prize"],
+    totalCopies: 5,
+    availableCopies: 2,
+    location: "A-1-2",
+    description:
+      "The unforgettable novel of a childhood in a sleepy Southern town and the crisis of conscience that rocked it, told through the eyes of Scout Finch.",
+  },
+  {
+    title: "1984",
+    author: "George Orwell",
+    isbn: "9780451524935",
+    genre: "Science Fiction",
+    publisher: "Signet Classic",
+    publishedYear: 1949,
+    pageCount: 328,
+    language: "English",
+    tags: ["dystopia", "political", "classic"],
+    totalCopies: 3,
+    availableCopies: 1,
+    location: "B-2-1",
+    description:
+      "A chilling prophecy about the future, set in a totalitarian society where Big Brother watches your every move and the Thought Police can read your mind.",
+  },
+  {
+    title: "Dune",
+    author: "Frank Herbert",
+    isbn: "9780441013593",
+    genre: "Science Fiction",
+    publisher: "Ace Books",
+    publishedYear: 1965,
+    pageCount: 688,
+    language: "English",
+    tags: ["space opera", "politics", "ecology"],
+    totalCopies: 2,
+    availableCopies: 2,
+    location: "B-2-2",
+    description:
+      "Set in the distant future amidst a feudal interstellar society, Dune tells the story of young Paul Atreides on the desert planet Arrakis.",
+  },
+  {
+    title: "Sapiens: A Brief History of Humankind",
+    author: "Yuval Noah Harari",
+    isbn: "9780062316097",
+    genre: "History",
+    publisher: "Harper",
+    publishedYear: 2011,
+    pageCount: 443,
+    language: "English",
+    tags: ["history", "anthropology", "bestseller"],
+    totalCopies: 3,
+    availableCopies: 3,
+    location: "C-3-1",
+    description:
+      "A groundbreaking narrative of humanity's creation and evolution that explores how biology and history have defined us and enhanced our understanding of what it means to be human.",
+  },
+  {
+    title: "The Hitchhiker's Guide to the Galaxy",
+    author: "Douglas Adams",
+    isbn: "9780345391803",
+    genre: "Science Fiction",
+    publisher: "Del Rey",
+    publishedYear: 1979,
+    pageCount: 224,
+    language: "English",
+    tags: ["comedy", "space", "cult classic"],
+    totalCopies: 2,
+    availableCopies: 2,
+    location: "B-2-3",
+    description:
+      "Seconds before Earth is demolished for a galactic freeway, Arthur Dent is plucked off the planet by his friend Ford Prefect. Together they travel the universe with just a copy of the Hitchhiker's Guide.",
+  },
+  {
+    title: "Thinking, Fast and Slow",
+    author: "Daniel Kahneman",
+    isbn: "9780374533557",
+    genre: "Psychology",
+    publisher: "Farrar, Straus and Giroux",
+    publishedYear: 2011,
+    pageCount: 499,
+    language: "English",
+    tags: ["psychology", "behavioral economics", "decision making"],
+    totalCopies: 2,
+    availableCopies: 1,
+    location: "D-4-1",
+    description:
+      "Kahneman exposes the two systems that drive the way we think: System 1 is fast, intuitive, and emotional; System 2 is slower, more deliberative, and more logical.",
+  },
+  {
+    title: "The Alchemist",
+    author: "Paulo Coelho",
+    isbn: "9780062315007",
+    genre: "Fiction",
+    publisher: "HarperOne",
+    publishedYear: 1988,
+    pageCount: 208,
+    language: "English",
+    tags: ["inspirational", "philosophy", "journey"],
+    totalCopies: 4,
+    availableCopies: 4,
+    location: "A-1-3",
+    description:
+      "A magical story about Santiago, an Andalusian shepherd boy who yearns to travel in search of a worldly treasure as extravagant as any ever found.",
+  },
+  {
+    title: "Atomic Habits",
+    author: "James Clear",
+    isbn: "9780735211292",
+    genre: "Self-Help",
+    publisher: "Avery",
+    publishedYear: 2018,
+    pageCount: 320,
+    language: "English",
+    tags: ["productivity", "habits", "self-improvement"],
+    totalCopies: 5,
+    availableCopies: 3,
+    location: "E-5-1",
+    description:
+      "A revolutionary system to get 1 percent better every day. James Clear shares practical strategies grounded in biology, psychology, and neuroscience.",
+  },
+  {
+    title: "The Name of the Wind",
+    author: "Patrick Rothfuss",
+    isbn: "9780756404741",
+    genre: "Fantasy",
+    publisher: "DAW Books",
+    publishedYear: 2007,
+    pageCount: 662,
+    language: "English",
+    tags: ["epic fantasy", "magic", "adventure"],
+    totalCopies: 2,
+    availableCopies: 2,
+    location: "F-6-1",
+    description:
+      "The tale of Kvothe—from his childhood in a troupe of traveling players to years spent as a near-feral orphan in a crime-riddled city, to his daringly brazen yet successful bid to enter a legendary school of magic.",
+  },
+  {
+    title: "A Brief History of Time",
+    author: "Stephen Hawking",
+    isbn: "9780553380163",
+    genre: "Science",
+    publisher: "Bantam Books",
+    publishedYear: 1988,
+    pageCount: 212,
+    language: "English",
+    tags: ["physics", "cosmology", "popular science"],
+    totalCopies: 2,
+    availableCopies: 2,
+    location: "G-7-1",
+    description:
+      "A landmark volume in science writing from one of the great minds of our time, Stephen Hawking's book explores such profound questions as: How did the universe begin?",
+  },
+  {
+    title: "The Pragmatic Programmer",
+    author: "David Thomas, Andrew Hunt",
+    isbn: "9780135957059",
+    genre: "Technology",
+    publisher: "Addison-Wesley",
+    publishedYear: 2019,
+    pageCount: 352,
+    language: "English",
+    tags: ["programming", "software engineering", "career"],
+    totalCopies: 3,
+    availableCopies: 2,
+    location: "H-8-1",
+    description:
+      "The classic guide for developers who want to develop their skills and broaden their understanding of the craft of programming.",
+  },
+  {
+    title: "Pride and Prejudice",
+    author: "Jane Austen",
+    isbn: "9780141439518",
+    genre: "Romance",
+    publisher: "Penguin Classics",
+    publishedYear: 1813,
+    pageCount: 432,
+    language: "English",
+    tags: ["classic", "regency era", "romance"],
+    totalCopies: 3,
+    availableCopies: 3,
+    location: "A-1-4",
+    description:
+      "The story follows the main character Elizabeth Bennet as she deals with issues of manners, upbringing, morality, education, and marriage in the society of the landed gentry of early 19th-century England.",
+  },
+  {
+    title: "Educated",
+    author: "Tara Westover",
+    isbn: "9780399590504",
+    genre: "Biography",
+    publisher: "Random House",
+    publishedYear: 2018,
+    pageCount: 334,
+    language: "English",
+    tags: ["memoir", "education", "family"],
+    totalCopies: 2,
+    availableCopies: 1,
+    location: "I-9-1",
+    description:
+      "A memoir about a young girl who, kept out of school, leaves her survivalist family and goes on to earn a PhD from Cambridge University.",
+  },
+  {
+    title: "The Midnight Library",
+    author: "Matt Haig",
+    isbn: "9780525559474",
+    genre: "Fiction",
+    publisher: "Viking",
+    publishedYear: 2020,
+    pageCount: 304,
+    language: "English",
+    tags: ["contemporary", "philosophical", "life choices"],
+    totalCopies: 3,
+    availableCopies: 2,
+    location: "A-1-5",
+    description:
+      "Between life and death there is a library. When Nora Seed finds herself there, she has a chance to undo her regrets and try out some of the lives she never lived.",
+  },
+  {
+    title: "Clean Code",
+    author: "Robert C. Martin",
+    isbn: "9780132350884",
+    genre: "Technology",
+    publisher: "Prentice Hall",
+    publishedYear: 2008,
+    pageCount: 431,
+    language: "English",
+    tags: ["programming", "best practices", "software craft"],
+    totalCopies: 4,
+    availableCopies: 4,
+    location: "H-8-2",
+    description:
+      "Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. This book is packed with practical advice on writing clean, readable code.",
+  },
+  {
+    title: "The Hobbit",
+    author: "J.R.R. Tolkien",
+    isbn: "9780547928227",
+    genre: "Fantasy",
+    publisher: "Houghton Mifflin Harcourt",
+    publishedYear: 1937,
+    pageCount: 310,
+    language: "English",
+    tags: ["fantasy", "adventure", "classic"],
+    totalCopies: 5,
+    availableCopies: 4,
+    location: "F-6-2",
+    description:
+      "Bilbo Baggins is a hobbit who enjoys a comfortable, unambitious life, rarely traveling any farther than his pantry or cellar. Then one morning, Gandalf the wizard appears at his door with a group of dwarves.",
+  },
+  {
+    title: "Becoming",
+    author: "Michelle Obama",
+    isbn: "9781524763138",
+    genre: "Biography",
+    publisher: "Crown",
+    publishedYear: 2018,
+    pageCount: 448,
+    language: "English",
+    tags: ["memoir", "politics", "inspiration"],
+    totalCopies: 3,
+    availableCopies: 3,
+    location: "I-9-2",
+    description:
+      "In her memoir, Michelle Obama invites readers into her world, chronicling the experiences that have shaped her—from her childhood on the South Side of Chicago to her years as an executive balancing the demands of motherhood and work.",
+  },
+  {
+    title: "The Power of Now",
+    author: "Eckhart Tolle",
+    isbn: "9781577314806",
+    genre: "Self-Help",
+    publisher: "New World Library",
+    publishedYear: 1997,
+    pageCount: 236,
+    language: "English",
+    tags: ["mindfulness", "spirituality", "meditation"],
+    totalCopies: 2,
+    availableCopies: 2,
+    location: "E-5-2",
+    description:
+      "A guide to spiritual enlightenment that emphasizes the importance of living in the present moment and transcending thoughts of the past or future.",
+  },
+  {
+    title: "The Silent Patient",
+    author: "Alex Michaelides",
+    isbn: "9781250301697",
+    genre: "Mystery",
+    publisher: "Celadon Books",
+    publishedYear: 2019,
+    pageCount: 325,
+    language: "English",
+    tags: ["thriller", "psychological", "mystery"],
+    totalCopies: 3,
+    availableCopies: 0,
+    status: "CHECKED_OUT" as const,
+    location: "J-10-1",
+    description:
+      "Alicia Berenson's life is seemingly perfect until one day she shoots her husband five times in the face and then never speaks another word.",
+  },
+];
+
 async function main() {
   const hashedPassword = await bcrypt.hash("password123", 12);
 
@@ -14,6 +338,17 @@ async function main() {
       email: "admin@example.com",
       password: hashedPassword,
       role: "ADMIN",
+    },
+  });
+
+  const librarian = await db.user.upsert({
+    where: { email: "librarian@example.com" },
+    update: {},
+    create: {
+      name: "Librarian",
+      email: "librarian@example.com",
+      password: hashedPassword,
+      role: "LIBRARIAN",
     },
   });
 
@@ -29,7 +364,60 @@ async function main() {
   });
 
   console.log("✓ Seeded:", admin.email, "(ADMIN)");
+  console.log("✓ Seeded:", librarian.email, "(LIBRARIAN)");
   console.log("✓ Seeded:", user.email, "(USER)");
+
+  // Seed books
+  for (const bookData of SAMPLE_BOOKS) {
+    await db.book.upsert({
+      where: { isbn: bookData.isbn },
+      update: {},
+      create: {
+        ...bookData,
+        status: bookData.status ?? "AVAILABLE",
+        addedByUserId: admin.id,
+      },
+    });
+  }
+  console.log(`✓ Seeded ${SAMPLE_BOOKS.length} books`);
+
+  // Seed a checkout record for "The Silent Patient" (checked out by the regular user)
+  const silentPatient = await db.book.findUnique({
+    where: { isbn: "9781250301697" },
+  });
+  if (silentPatient) {
+    await db.checkoutRecord.upsert({
+      where: { id: "seed-checkout-1" },
+      update: {},
+      create: {
+        id: "seed-checkout-1",
+        bookId: silentPatient.id,
+        userId: user.id,
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        status: "ACTIVE",
+      },
+    });
+    console.log("✓ Seeded sample checkout record");
+  }
+
+  // Seed some reviews
+  const greatGatsby = await db.book.findUnique({
+    where: { isbn: "9780743273565" },
+  });
+  if (greatGatsby) {
+    await db.bookReview.upsert({
+      where: { bookId_userId: { bookId: greatGatsby.id, userId: user.id } },
+      update: {},
+      create: {
+        bookId: greatGatsby.id,
+        userId: user.id,
+        rating: 5,
+        comment:
+          "A timeless classic. Fitzgerald's prose is simply beautiful. Highly recommended.",
+      },
+    });
+  }
+  console.log("✓ Seeded sample reviews");
 }
 
 main()
